@@ -16,7 +16,26 @@ DescriptionOrchard$find(
   fields = '{"clientValue": 1, "value": 1, "_id": 1, "location" : 1, "stationId" : 1, "dataSource" : 1}' 
     
   ) -> DescriptionOrchard
-    
+  
+
+# predios vilab 
+
+GET('https://api.vilab.cl/index.php/api/predios/key/7df5d2f73a99ed699a1955c87050ea7d') -> prediosVilab
+
+# fromJSON(rawToChar(prediosVilab$content))[['predios']] 
+
+prediosVilab$content |> 
+  rawToChar() |> 
+  fromJSON() |> 
+  pluck('predios') |> 
+  select(Nombre, Id, 
+         Estacion_institucion, Estacion_nombre,
+         Estacion_id, Estacion_lat, Estacion_long) |> 
+  
+  rename(id_Analytics = Nombre, 
+         id_Vilab = Id) -> prediosVilab
+
+  
 
 
 # std names, selección columnas
@@ -31,7 +50,7 @@ DescriptionOrchard |>
          id_Analytics, 
          lat, lng,
          stationId, dataSource)  |> 
-  arrange(client, orchard)-> DescriptionOrchard
+  arrange(client, orchard) -> DescriptionOrchard
 
 
 
@@ -84,8 +103,10 @@ mongo(url = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9
       collection = 'test') -> forecastWeather
 
 
-
-# este punto se debe mejorar, considerando ir actualizando la data
+# Todos los huertos vilab
+# Este punto se debe mejorar, considerando actualización de la data
+# Revisar timezone 
+# revisar timezones local/mongo
 
 forecastWeather$insert(forecast)
 
