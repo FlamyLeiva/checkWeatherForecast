@@ -4,7 +4,28 @@ pacman::p_load(httr,
                mongolite, 
                tidyverse)
 
-# Descargar descriptionOrchard ------------------------------------------
+
+# predios vilab (desde API Vilab)  ------------------------------------------------
+
+GET('https://api.vilab.cl/index.php/api/predios/key/7df5d2f73a99ed699a1955c87050ea7d') -> prediosVilab
+
+prediosVilab$content |> 
+  rawToChar() |> 
+  fromJSON() |> 
+  pluck(1) |> 
+  select(Nombre, Id, 
+         Estacion_institucion, Estacion_nombre,
+         Estacion_id, Estacion_lat, Estacion_long) |> 
+  
+  rename(id_Analytics = Nombre, 
+         id_Vilab = Id) -> prediosVilab
+
+
+
+
+
+
+# descriptionOrchard (Analytics) ------------------------------------------
 mongo(url = 'mongodb+srv://ti-analytics:oS11dxE6qv3T6dYQ@productioncluster.bllew.mongodb.net/', 
       db = 'db-general',
       collection = 'DescriptionOrchard') -> DescriptionOrchard
@@ -17,26 +38,6 @@ DescriptionOrchard$find(
     
   ) -> DescriptionOrchard
   
-
-# predios vilab 
-
-GET('https://api.vilab.cl/index.php/api/predios/key/7df5d2f73a99ed699a1955c87050ea7d') -> prediosVilab
-
-# fromJSON(rawToChar(prediosVilab$content))[['predios']] 
-
-prediosVilab$content |> 
-  rawToChar() |> 
-  fromJSON() |> 
-  pluck('predios') |> 
-  select(Nombre, Id, 
-         Estacion_institucion, Estacion_nombre,
-         Estacion_id, Estacion_lat, Estacion_long) |> 
-  
-  rename(id_Analytics = Nombre, 
-         id_Vilab = Id) -> prediosVilab
-
-  
-
 
 # std names, selección columnas
 DescriptionOrchard |> 
@@ -55,19 +56,21 @@ DescriptionOrchard |>
 
 
 
-# Definir huerto 
+
+# Descargar predicciones ------------------------------------------------
+
+# Definir huerto a consultar
 
 huerto <- 'Canadilla'
-
 
 GET(paste0('https://api.vilab.cl/index.php/api/clima_pro/',
            'key/7df5d2f73a99ed699a1955c87050ea7d/',
            'id/', 
            DescriptionOrchard |> 
              filter(orchard == huerto) |> 
-             select(stationId))) -> res
- 
-res$content |> 
+             select(stationId))) -> response
+
+response$content |> 
   rawToChar() |> 
   fromJSON() |> 
   pluck(1) |> 
@@ -79,7 +82,6 @@ res$content |>
          relativeHumidityMean = '3',
          windSpeed = '4') -> forecast
   
-
 
 # Agregar nuevas columnas 
 
@@ -97,18 +99,22 @@ forecast |>
 
 
 
-# Agregar los datos a mongo 
+
+# Subir los datos a mongo -------------------------------------
 mongo(url = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/', 
       db = 'forecastWeather',
       collection = 'test') -> forecastWeather
 
+forecastWeather$insert(forecast)
+
+
+
+# Por resolver (por ahora)
 
 # Todos los huertos vilab
-# Este punto se debe mejorar, considerando actualización de la data
-# Revisar timezone 
-# revisar timezones local/mongo
-
-forecastWeather$insert(forecast)
+# Considerar actualización continua de la data (sin perder la predicción generada a la hora anterior)
+# Revisar timezones local/mongo
+# Revisar mejor tipo de database en mongo para albergar la data (timeseries y/n)
 
 
 
