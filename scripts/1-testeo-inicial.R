@@ -108,12 +108,15 @@ for (i in 1:nrow(orchard_station)) {
   # Agregar las columnas orchard e idstation como las primeras en forecast2
   forecast2 <- forecast2 %>%
     mutate(orchard = orchard, 
-           stationId = stationId,  
+           stationId = stationId,  # Cambiamos id_Vilab a stationId
            datetime = as.POSIXct(Sys.time(), tz = 'America/Santiago'),
            datetimePredict = ymd_hms(datetimePredict),
            datetime = ymd_hms(datetime),
-           predictIndex = seq(1, nrow(forecast2), 1))%>%
+           predictIndex = seq(1, nrow(forecast2), 1)) %>%
     unnest(c(orchard, stationId))
+  
+  # Cambia el nombre de la columna id_Vilab a stationId
+  colnames(forecast2)[colnames(forecast2) == "id_Vilab"] <- "stationId"
   
   # Cambia el orden de las columnas en forecast2 (por defecto se agregaban al final)
   forecast2 <- forecast2 %>%
