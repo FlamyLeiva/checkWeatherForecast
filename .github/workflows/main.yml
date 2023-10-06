@@ -12,18 +12,11 @@ jobs:
     - name: Checkout código
       uses: actions/checkout@v2
 
-    - name: Configurar R
-      uses: r-lib/actions/setup-r@v1
-      with:
-        r-version: '4.x' 
-
-    - name: Instalar dependencias
+    - name: Instalar R y dependencias
       run: |
-        Rscript -e 'install.packages("httr")'
-        Rscript -e 'install.packages("jsonlite")'
-        Rscript -e 'install.packages("mongolite")'
-        Rscript -e 'install.packages("tidyverse")'
-        Rscript -e 'install.packages("lubridate")'
+        sudo apt-get update
+        sudo apt-get install -y r-base
+        Rscript -e 'install.packages(c("httr", "jsonlite", "mongolite", "tidyverse", "lubridate"))'
 
     - name: Ejecutar script R
       run: |
