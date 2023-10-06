@@ -2,7 +2,7 @@ name: Automatización
 
 on:
   schedule:
-    - cron: '* * * * *'   # Ejecutar cada hora
+    - cron: '32 15 * * *'    # Ejecutar cada hora
 
 jobs:
   build:
