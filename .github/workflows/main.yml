@@ -14,7 +14,7 @@ jobs:
       # with:
       #   r-version: '4.2' # The R version to download (if necessary) and use. 
         # Use "renv" to retrieve R version recorded in renv.lock file.
-    - run: 'scripts/1-testeo-inicial.R' -e 'print("Script main ejecutado exitosamente")'
+    #- run: 'scripts/1-testeo-inicial.R' -e 'print("Script main ejecutado exitosamente")'
     
     
     
@@ -38,7 +38,7 @@ jobs:
     #     Rscript -e 'install.packages("tidyverse")'
     #     Rscript -e 'install.packages("lubridate")'
     # 
-    # - name: Ejecutar script R
-    #   run: |
-    #       Rscript scripts/1-testeo-inicial.R
-    #       echo "Script main ejecutado exitosamente"  
+    - name: Ejecutar script R
+      run: |
+          Rscript scripts/1-testeo-inicial.R
+          echo "Script main ejecutado exitosamente"
