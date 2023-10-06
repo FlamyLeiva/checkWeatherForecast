@@ -2,7 +2,7 @@ name: Automatización
 
 on:
   schedule:
-    - cron: '0 * * * *'  # Ejecutar cada hora
+    - cron: '* * * * *'   # Ejecutar cada hora
 
 jobs:
   build:
@@ -26,4 +26,6 @@ jobs:
         Rscript -e 'install.packages("lubridate")'
 
     - name: Ejecutar script R
-      run: Rscript scripts/1-testeo-inicial.R  
+      run: |
+          Rscript scripts/1-testeo-inicial.R
+          echo "Script ejecutado exitosamente"  
