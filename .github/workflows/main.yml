@@ -13,7 +13,7 @@ jobs:
       uses: actions/checkout@v2
 
     - name: Configurar R
-      uses: r-lib/actions/setup-r@v1
+      uses: actions/setup-r@v1
       with:
         r-version: '4.x'  # Cambia a la versión de R que necesites
 
