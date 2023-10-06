@@ -4,6 +4,8 @@ pacman::p_load(httr,
                mongolite, 
                tidyverse)
 library(lubridate)
+library(tidyr)
+
 
 
 # predios vilab (desde API Vilab)  ------------------------------------------------
@@ -73,7 +75,7 @@ orchard_station <- Desctipction_Vilab %>%
   drop_na() %>%
   collect()
 
-#lista
+#funcion para acceder a la data de una estacion
 get_data_for_orchard_station <- function (stationId) {
   url <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
                 'key/7df5d2f73a99ed699a1955c87050ea7d/',
@@ -84,9 +86,8 @@ get_data_for_orchard_station <- function (stationId) {
 }
 
 #get_data_for_orchard_station(5918)
-library(dplyr)
-library(lubridate)
 
+#tabla que alojara todos los huertos
 all_forecasts <- data.frame()
 
 # Iterar sobre la lista de pares OrchardName y StationID
@@ -111,69 +112,34 @@ for (i in 1:nrow(orchard_station)) {
     mutate(orchard = orchard, 
            idstation = stationId,
            datetimeGenerate = force_tz(Sys.time(), tz = 'America/Santiago'),
-           predictIndex = seq(1, nrow(forecast2), 1))
+           datetimePredict = ymd_hms(datetimePredict),
+           predictIndex = seq(1, nrow(forecast2), 1))%>%
+    unnest(c(orchard, idstation))
   
-  # Cambiar el orden de las columnas en forecast2
+  # Cambia el orden de las columnas en forecast2
   forecast2 <- forecast2 %>%
     select(orchard, datetimeGenerate, datetimePredict, predictIndex, everything())
   
-  # Agregar las filas de forecast2 a la tabla all_forecasts
+  # Agrega las filas de forecast2 a la tabla consoidad all_forecasts
   all_forecasts <- rbind(all_forecasts, forecast2)
 }
 
 # Verificar la tabla resultante
 print(all_forecasts)
 
-
-
-
-#lista para todos los orchards
-all_forecasts <- data.frame()
-
-# Iterar sobre la lista de pares OrchardName y StationID
-for (i in 1:nrow(orchard_station)) {
-  orchard <- orchard_station[i, "orchard"]
-  stationId <- orchard_station[i, "stationId"]
-  response <- get_data_for_orchard_station(stationId)
-  
-  forecast2 <- response$content |>
-    rawToChar() |>
-    fromJSON() |>
-    pluck(1) |>
-    as_tibble() |>
-    rename(datetimePredict = 'Fecha',
-           tempMean = '1',
-           precipitation = '2',
-           relativeHumidityMean = '3',
-           windSpeed = '4') 
-  
-  # Agregar las columnas orchard e idstation como las primeras en forecast2
-  forecast2 <- forecast2 %>%
-    mutate(orchard = orchard, idstation = stationId)
-  
-  # Agregar las columnas adicionales a forecast2
-  forecast2 <- forecast2 %>%
-    mutate(datetimeGenerate =force_tz(Sys.time(), tz = 'America/Santiago'),
-           predictIndex = seq(1, nrow(forecast2), 1))
-  
-  # Agregar las filas de forecast2 a la tabla all_forecasts
-  all_forecasts <- rbind(all_forecasts, forecast2)
-}
-# Verificar la tabla resultante
-print(all_forecasts)
 
 # Subir los datos a mongo -------------------------------------
 mongo(url = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/', 
       db = 'forecastWeather',
-      collection = 'test') -> forecastWeather
-gl
-forecastWeather$insert(forecast)
-# Por resolver (por ahora)
+      collection = 'test2') -> forecastWeather
 
-# Todos los huertos vilab
+forecastWeather$insert(all_forecasts)
+
+
+# Todos los huertos vilab OK
 # Considerar actualización continua de la data (sin perder la predicción generada a la hora anterior)
-# Revisar timezones local/mongo
-# Revisar mejor tipo de database en mongo para albergar la data (timeseries y/n)
+# Revisar timezones local/mongo OK
+# Revisar mejor tipo de database en mongo para albergar la data (timeseries y/n) --
 
 
 
