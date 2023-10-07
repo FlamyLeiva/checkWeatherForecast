@@ -1,8 +1,8 @@
 name: Automatización
 
-# on:
-#   schedule:
-#     - cron: '* * * * *'  # Ejecucion
+on:
+  schedule:
+    - cron: '* * * * *'  # Ejecucion
 
 jobs:
   build:
