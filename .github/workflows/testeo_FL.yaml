@@ -1,10 +1,9 @@
 name: Descarga forecast
 on:
+  schedule:
+    - cron: '* * * * *'
   # push:
   #   branches: branch-FL
-  schedule:
-    - cron: '5 * * * *'
-
 
 # on:
 #   push:
