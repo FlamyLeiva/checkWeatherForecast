@@ -1,8 +1,14 @@
+name: Descarga forecast
 on:
-  schedule:
-    - cron: '*33 * * * *'  # Ejecucion
   push:
     branches: branch-FL
+  schedule:
+    - cron: '40 15 * * *'
+
+
+# on:
+#   push:
+#     branches: branch-FL
 
 jobs:
   import-data:
