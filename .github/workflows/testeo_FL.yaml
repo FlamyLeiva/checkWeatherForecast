@@ -3,7 +3,7 @@ on:
   # push:
   #   branches: branch-FL
   schedule:
-    - cron: '* * * * *'
+    - cron: '5 * * * *'
 
 
 # on:
