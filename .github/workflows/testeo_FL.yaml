@@ -36,4 +36,4 @@ jobs:
       #     git commit -m 'Data updated' || echo "No changes to commit"
       #     git push origin || echo "No changes to commit"
 
-YAML files are notoriously finicky with regard to spacing. Each indentation you see above is done with two spaces (not tabs). Follow this pattern to avoid headaches. 
+#YAML files are notoriously finicky with regard to spacing. Each indentation you see above is done with two spaces (not tabs). Follow this pattern to avoid headaches. 
