@@ -3,8 +3,6 @@ pacman::p_load(httr,
                jsonlite, 
                mongolite, 
                tidyverse)
-library(lubridate)
-library(tidyr)
 
 
 

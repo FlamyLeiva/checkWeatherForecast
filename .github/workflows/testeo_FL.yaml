@@ -14,6 +14,7 @@ jobs:
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
           packages: |
+            any::pacman 
             any::tidyverse 
             any::mongolite
             any::jsonlite
