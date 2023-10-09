@@ -133,7 +133,7 @@ print(all_forecasts)
 # Subir los datos a mongo -------------------------------------
 mongo(url = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/', 
       db = 'forecastWeather',
-      collection = 'test5') -> forecastWeather
+      collection = 'test6') -> forecastWeather
 
 forecastWeather$insert(all_forecasts)
 

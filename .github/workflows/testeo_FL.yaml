@@ -1,8 +1,8 @@
-name: Descarga forecast
+name: Descarga forecast horario
 
 on:
   schedule:
-    - cron: '18 4 * * *'
+    - cron: '0 * * * *'
 
 jobs:
   import-data:
