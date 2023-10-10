@@ -31,7 +31,7 @@ jobs:
 
 
       - name: Import data
-        env: 
+        #env: 
           # KEY_API : ${{ secrets.KEY_API}}
           # MDB_PROD : ${{ secrets.MDB_PROD}}
           # MDB_PROT : ${{ secrets.MDB_PROT}}
