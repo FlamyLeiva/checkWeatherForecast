@@ -29,7 +29,7 @@ prediosVilab$content |>
 
 
 # descriptionOrchard (Analytics) ------------------------------------------
-mongo(url = Sys.getenv('MDB_PROD'), 
+mongo(url = 'mongodb+srv://ti-analytics:oS11dxE6qv3T6dYQ@productioncluster.bllew.mongodb.net/', 
       db = 'db-general',
       collection = 'DescriptionOrchard') -> DescriptionOrchard
 
