@@ -183,7 +183,7 @@ mongo(#url = Sys.getenv('MDB_PROT'),
       db = 'forecastWeather',
       collection = 'test6') -> forecastWeather
 
-url1 = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/',
+url1 = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/'
 url2= Sys.getenv('MDB_PROT')
 if (url1 == url2) {
   print("Las URLs prott son iguales prod.")
