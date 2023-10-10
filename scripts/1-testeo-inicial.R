@@ -92,6 +92,8 @@ orchard_station <- infoOrchards_Analytics %>%
   drop_na() %>%
   collect()
 
+print(head(infoOrchards_Analytics,2))
+
 #funcion para acceder a la data de una estacion
 get_data_for_orchard_station <- function (stationId) {
   url <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
