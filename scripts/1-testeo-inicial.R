@@ -4,11 +4,12 @@ pacman::p_load(httr,
                mongolite, 
                tidyverse)
 
-
+Sys.getenv('PREDIOS_VLAB') -> PREDIOS_VLAB
+print(PREDIOS_VLAB)
 
 # predios vilab (desde API Vilab)  ------------------------------------------------
 
-GET(Sys.getenv('PREDIOS_VLAB')) -> prediosVilab
+GET(PREDIOS_VLAB) -> prediosVilab
 
 prediosVilab$content |> 
   rawToChar() |> 
