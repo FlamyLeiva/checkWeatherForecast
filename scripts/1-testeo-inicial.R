@@ -178,8 +178,8 @@ print(all_forecasts)
 
 
 # Subir los datos a mongo -------------------------------------
-mongo(#url = Sys.getenv('MDB_PROT'), 
-  url = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/',
+mongo(url = Sys.getenv('MDB_PROT'), 
+  #url = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/',
       db = 'forecastWeather',
       collection = 'test6') -> forecastWeather
 
