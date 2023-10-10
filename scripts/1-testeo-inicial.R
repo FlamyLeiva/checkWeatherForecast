@@ -96,15 +96,17 @@ print(head(infoOrchards_Analytics,2))
 
 url1 <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
                "key/7df5d2f73a99ed699a1955c87050ea7d/",
-               'id/',
-               "ppp", " url1")
+               'id/')
 url2 <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
                Sys.getenv('KEY_API'),
-               'id/',
-               "ppp","url2")
+               'id/'
+               )
 
-print(url1)
-print(url2)
+if (url1 == url2) {
+  print("Las URLs son iguales.")
+} else {
+  print("Las URLs son diferentes.")
+}
 
 
 
