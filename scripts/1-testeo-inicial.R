@@ -23,8 +23,7 @@ prediosVilab$content |>
   rename(id_Analytics = Nombre, 
          id_Vilab = Id) -> prediosVilab
 
-print("predios print")
-print(prediosVilab[1][1])
+
 
 
 Mongo_prod <- GET(Sys.getenv('MDB_PROD'))
