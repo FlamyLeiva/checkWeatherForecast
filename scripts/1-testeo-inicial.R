@@ -7,7 +7,7 @@ pacman::p_load(httr,
 
 
 Sys.getenv('PREDIOS_VLAB') -> PREDIOS_VLAB
-print(PREDIOS_VLAB)
+print('Hola', PREDIOS_VLAB)
 
 # predios vilab (desde API Vilab)  ------------------------------------------------
 
@@ -40,7 +40,7 @@ DescriptionOrchard$find(
   
 ) -> DescriptionOrchard
 
-
+print('Buscar',colnames(DescriptionOrchard))
 # std names, selección columnas
 DescriptionOrchard |> 
   unnest_wider(location) |> 
