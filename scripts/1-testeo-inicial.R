@@ -33,7 +33,9 @@ mongo(url = Sys.getenv('MDB_PROD'),
       db = 'db-general',
       collection = 'DescriptionOrchard') -> DescriptionOrchard
 
-
+cat('URL de conexión a MongoDB:', Sys.getenv('MDB_PROD'), '\n')
+print("tmb print")
+print(Sys.getenv('MDB_PROD'))
 DescriptionOrchard$find(
   
   fields = '{"clientValue": 1, "value": 1, "_id": 1, "location" : 1, "stationId" : 1, "dataSource" : 1}' 
@@ -59,6 +61,9 @@ DescriptionOrchard |>
 
 #verificando si funciona 
 print(paste('Buscar',colnames(DescriptionOrchard)))
+
+print('Respuesta de MongoDB:')
+print(DescriptionOrchard)
 
 
 print("Primera fila de prediosVilab:")
