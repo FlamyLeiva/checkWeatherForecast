@@ -71,13 +71,9 @@ orchard_station <- infoOrchards_Analytics %>%
 
 print(head(infoOrchards_Analytics,2))
 
-url1 <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
-               "key/7df5d2f73a99ed699a1955c87050ea7d/",
-               'id/')
-url2 <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
-               Sys.getenv('KEY_API'),
-               'id/'
-               )
+url1 <- "key/7df5d2f73a99ed699a1955c87050ea7d/"
+url2 <- Sys.getenv('KEY_API')
+               
 
 if (url1 == url2) {
   print("Las URLs key son iguales.")
@@ -90,8 +86,8 @@ if (url1 == url2) {
 #funcion para acceder a la data de una estacion
 get_data_for_orchard_station <- function (stationId) {
   url <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
-                #"key/7df5d2f73a99ed699a1955c87050ea7d/",
-                Sys.getenv('KEY_API'),
+                "key/7df5d2f73a99ed699a1955c87050ea7d/",
+                #Sys.getenv('KEY_API'),
                 'id/',
                 stationId)
   response <- GET(url)
