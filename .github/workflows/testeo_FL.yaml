@@ -40,7 +40,7 @@ jobs:
         
       # - name: Print Variables
       #   run: |
-      #   echo "Output [${{secrets.MDB_PROD}}]"dd
+      #   echo "Output [${{secrets.MDB_PROD}}]"dda
       
       
       
