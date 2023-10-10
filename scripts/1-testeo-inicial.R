@@ -110,9 +110,9 @@ url2 <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
                )
 
 if (url1 == url2) {
-  print("Las URLs son iguales.")
+  print("Las URLs key son iguales.")
 } else {
-  print("Las URLs son diferentes.")
+  print("Las URLs key  son diferentes.")
 }
 
 
@@ -169,7 +169,7 @@ for (i in 1:nrow(orchard_station)) {
   
   colnames(forecast2)[colnames(forecast2) == "id_Vilab"] <- "stationId"
   
-  # Agrega las filas de forecast2 a la tabla consoidad all_forecasts
+  # Agrega las filas de forecast2 a la tabla consoidad all_forecastsj
   all_forecasts <- rbind(all_forecasts, forecast2)
 }
 
