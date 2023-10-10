@@ -10,7 +10,6 @@ Sys.getenv('PREDIOS_VLAB') -> PREDIOS_VLAB
 #print('Hola', PREDIOS_VLAB)
 
 # predios vilab (desde API Vilab)  ------------------------------------------------
-#PREDIOS_VLAB <- 'https://api.vilab.cl/index.php/api/predios/key/7df5d2f73a99ed699a1955c87050ea7d'
 GET(PREDIOS_VLAB) -> prediosVilab
 
 prediosVilab$content |> 
@@ -25,12 +24,10 @@ prediosVilab$content |>
          id_Vilab = Id) -> prediosVilab
 
 print("predios print")
-print(prediosVilab)
+print(prediosVilab[1][1])
 
 
 Mongo_prod <- GET(Sys.getenv('MDB_PROD'))
-Mongo_prod <- content(response, as = "text")
-
 
 
 # descriptionOrchard (Analytics) ------------------------------------------
@@ -45,7 +42,6 @@ DescriptionOrchard$find(
   
 ) -> DescriptionOrchard
 
-print(paste('Buscar',colnames(DescriptionOrchard)))
 
 
 
@@ -63,6 +59,20 @@ DescriptionOrchard |>
          stationId, dataSource)  |> 
   arrange(client, orchard) -> DescriptionOrchard
 
+#verificando si funciona 
+print(paste('Buscar',colnames(DescriptionOrchard)))
+
+
+print("Primera fila de prediosVilab:")
+print(head(prediosVilab, 1))
+print("Tipo de objeto de prediosVilab:")
+print(class(prediosVilab))
+
+# Imprimir la primera fila de la tabla DescriptionOrchard y su tipo
+print("Primera fila de DescriptionOrchard:")
+print(head(DescriptionOrchard, 1))
+print("Tipo de objeto de DescriptionOrchard:")
+print(class(DescriptionOrchard))
 
 #Cruce con predios 
 DescriptionOrchard |> 
