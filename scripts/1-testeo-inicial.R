@@ -6,8 +6,6 @@ pacman::p_load(httr,
 
 
 
-
-
 GET(Sys.getenv('PREDIOS_VLAB')) -> prediosVilab
 
 prediosVilab$content |> 
@@ -69,19 +67,6 @@ orchard_station <- infoOrchards_Analytics %>%
   drop_na() %>%
   collect()
 
-print(head(infoOrchards_Analytics,2))
-
-url1 <- "key/7df5d2f73a99ed699a1955c87050ea7d/"
-url2 <- Sys.getenv('KEY_API')
-               
-
-if (url1 == url2) {
-  print("Las URLs key son iguales.")
-} else {
-  print("Las URLs key  son diferentes.")
-}
-
-
 
 #funcion para acceder a la data de una estacion
 get_data_for_orchard_station <- function (stationId) {
@@ -94,7 +79,6 @@ get_data_for_orchard_station <- function (stationId) {
   return(response)
 }
 
-#get_data_for_orchard_station(5918)
 
 #tabla que alojara todos los huertos
 all_forecasts <- data.frame()
@@ -152,6 +136,3 @@ mongo(url = Sys.getenv('MDB_PROT'),
 forecastWeather$insert(all_forecasts)
 
 
-# Todos los huertos vilab OK
-# Considerar actualización continua de la data (sin perder la predicción generada a la hora anterior)
-# Revisar

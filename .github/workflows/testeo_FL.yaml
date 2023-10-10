@@ -1,22 +1,14 @@
 name: Descarga forecast horario
 
 on:
-  push: 
-    branches:
-     - main
-  # schedule:
-  #   - cron: '0 * * * *'
+  schedule:
+    - cron: '0 * * * *'
 
 jobs:
   import-data:
     runs-on: ubuntu-latest
     
-    # env:
-    #   KEY_API : ${{ secrets.KEY_API}}
-    #   MDB_PROD : ${{ secrets.MDB_PROD}}
-    #   MDB_PROT : ${{ secrets.MDB_PROT}}
-    #   PREDIOS_VLAB : ${{ secrets.PREDIOS_VLAB}}
-    # 
+   
     steps:
       - name: Set up R
         uses: r-lib/actions/setup-r@v2
