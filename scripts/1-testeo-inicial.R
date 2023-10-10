@@ -10,8 +10,8 @@ Sys.getenv('PREDIOS_VLAB') -> PREDIOS_VLAB
 #print('Hola', PREDIOS_VLAB)
 
 # predios vilab (desde API Vilab)  ------------------------------------------------
-GET(PREDIOS_VLAB) -> prediosVilab
-
+#GET(PREDIOS_VLAB) -> prediosVilab
+GET('https://api.vilab.cl/index.php/api/predios/key/7df5d2f73a99ed699a1955c87050ea7d') -> prediosVilab
 prediosVilab$content |> 
   rawToChar() |> 
   fromJSON() |> 
@@ -22,9 +22,6 @@ prediosVilab$content |>
   
   rename(id_Analytics = Nombre, 
          id_Vilab = Id) -> prediosVilab
-
-
-
 
 
 
