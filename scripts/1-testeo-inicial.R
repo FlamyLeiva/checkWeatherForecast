@@ -30,6 +30,15 @@ mongo(url = 'mongodb+srv://ti-analytics:oS11dxE6qv3T6dYQ@productioncluster.bllew
       db = 'db-general',
       collection = 'DescriptionOrchard') -> DescriptionOrchard
 
+url1=Sys.getenv('MDB_PROD')
+url2='mongodb+srv://ti-analytics:oS11dxE6qv3T6dYQ@productioncluster.bllew.mongodb.net/'
+
+if (url1 == url2) {
+  print("Las URLs son iguales prod.")
+} else {
+  print("Las URLs prod son diferentes.")
+}
+
 cat('URL de conexión a MongoDB:', Sys.getenv('MDB_PROD'), '\n')
 print("tmb print")
 print(Sys.getenv('MDB_PROD'))
