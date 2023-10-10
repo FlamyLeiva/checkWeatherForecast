@@ -7,7 +7,7 @@ pacman::p_load(httr,
 
 
 Sys.getenv('PREDIOS_VLAB') -> PREDIOS_VLAB
-print('Hola', PREDIOS_VLAB)
+#print('Hola', PREDIOS_VLAB)
 
 # predios vilab (desde API Vilab)  ------------------------------------------------
 
