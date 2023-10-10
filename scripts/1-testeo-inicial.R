@@ -32,7 +32,6 @@ mongo(url = url1,
       db = 'db-general',
       collection = 'DescriptionOrchard') -> DescriptionOrchard
 
-url1=Sys.getenv('MDB_PROD')
 url2='mongodb+srv://ti-analytics:oS11dxE6qv3T6dYQ@productioncluster.bllew.mongodb.net/'
 
 if (url1 == url2) {
@@ -41,9 +40,6 @@ if (url1 == url2) {
   print("Las URLs prod son diferentes.")
 }
 
-cat('URL de conexión a MongoDB:', Sys.getenv('MDB_PROD'), '\n')
-print("tmb print")
-print(Sys.getenv('MDB_PROD'))
 DescriptionOrchard$find(
   
   fields = '{"clientValue": 1, "value": 1, "_id": 1, "location" : 1, "stationId" : 1, "dataSource" : 1}' 
@@ -186,6 +182,15 @@ mongo(#url = Sys.getenv('MDB_PROT'),
   url = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/',
       db = 'forecastWeather',
       collection = 'test6') -> forecastWeather
+
+url1 = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/',
+url2= Sys.getenv('MDB_PROT')
+if (url1 == url2) {
+  print("Las URLs prott son iguales prod.")
+} else {
+  print("Las URLs prott son diferentes.")
+}
+
 
 forecastWeather$insert(all_forecasts)
 
