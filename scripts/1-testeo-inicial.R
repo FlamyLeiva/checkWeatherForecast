@@ -6,12 +6,10 @@ pacman::p_load(httr,
 
 
 
-Sys.getenv('PREDIOS_VLAB') -> PREDIOS_VLAB
-#print('Hola', PREDIOS_VLAB)
 
-# predios vilab (desde API Vilab)  ------------------------------------------------
-#GET(PREDIOS_VLAB) -> prediosVilab
+
 GET(Sys.getenv('PREDIOS_VLAB')) -> prediosVilab
+
 prediosVilab$content |> 
   rawToChar() |> 
   fromJSON() |> 
@@ -24,29 +22,18 @@ prediosVilab$content |>
          id_Vilab = Id) -> prediosVilab
 
 url1=Sys.getenv('MDB_PROD')
-#url2='mongodb+srv://ti-analytics:oS11dxE6qv3T6dYQ@productioncluster.bllew.mongodb.net/'
-
 
 # descriptionOrchard (Analytics) ------------------------------------------
 mongo(url = url1, 
       db = 'db-general',
       collection = 'DescriptionOrchard') -> DescriptionOrchard
 
-url2='mongodb+srv://ti-analytics:oS11dxE6qv3T6dYQ@productioncluster.bllew.mongodb.net/'
-
-if (url1 == url2) {
-  print("Las URLs son iguales prod.")
-} else {
-  print("Las URLs prod son diferentes.")
-}
 
 DescriptionOrchard$find(
   
   fields = '{"clientValue": 1, "value": 1, "_id": 1, "location" : 1, "stationId" : 1, "dataSource" : 1}' 
   
 ) -> DescriptionOrchard
-
-
 
 
 # std names, selección columnas
@@ -63,23 +50,6 @@ DescriptionOrchard |>
          stationId, dataSource)  |> 
   arrange(client, orchard) -> DescriptionOrchard
 
-#verificando si funciona 
-print(paste('Buscar',colnames(DescriptionOrchard)))
-
-print('Respuesta de MongoDB:')
-print(DescriptionOrchard)
-
-
-print("Primera fila de prediosVilab:")
-print(head(prediosVilab, 1))
-print("Tipo de objeto de prediosVilab:")
-print(class(prediosVilab))
-
-# Imprimir la primera fila de la tabla DescriptionOrchard y su tipo
-print("Primera fila de DescriptionOrchard:")
-print(head(DescriptionOrchard, 1))
-print("Tipo de objeto de DescriptionOrchard:")
-print(class(DescriptionOrchard))
 
 #Cruce con predios 
 DescriptionOrchard |> 
@@ -120,8 +90,8 @@ if (url1 == url2) {
 #funcion para acceder a la data de una estacion
 get_data_for_orchard_station <- function (stationId) {
   url <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
-                "key/7df5d2f73a99ed699a1955c87050ea7d/",
-                #Sys.getenv('KEY_API'),
+                #"key/7df5d2f73a99ed699a1955c87050ea7d/",
+                Sys.getenv('KEY_API'),
                 'id/',
                 stationId)
   response <- GET(url)
@@ -179,17 +149,8 @@ print(all_forecasts)
 
 # Subir los datos a mongo -------------------------------------
 mongo(url = Sys.getenv('MDB_PROT'), 
-  #url = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/',
       db = 'forecastWeather',
       collection = 'test6') -> forecastWeather
-
-url1 = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/'
-url2= Sys.getenv('MDB_PROT')
-if (url1 == url2) {
-  print("Las URLs prott son iguales prod.")
-} else {
-  print("Las URLs prott son diferentes.")
-}
 
 
 forecastWeather$insert(all_forecasts)
