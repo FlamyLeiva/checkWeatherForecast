@@ -38,10 +38,10 @@ jobs:
           PREDIOS_VLAB : ${{ secrets.PREDIOS_VLAB}}
         run: Rscript -e 'source("scripts/1-testeo-inicial.R")'
         
-      - name: Print Variables
-        run: 
-          MDB_PROD : ${{ secrets.MDB_PROD}}
-          MDB_PROT : ${{ secrets.MDB_PROT}}
+      # - name: Print Variables
+      #   run: |
+      #   echo "Prod Cluster: ${{ steps.yaml-output-deployment.outputs.prod-cluster-name }}"
+      #   echo "Region: ${{ steps.yaml-output-deployment.outputs.region }}"
       
       
       
