@@ -94,17 +94,18 @@ orchard_station <- infoOrchards_Analytics %>%
 
 print(head(infoOrchards_Analytics,2))
 
-url <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
-              "key/7df5d2f73a99ed699a1955c87050ea7d/",
-              'id/',
-              stationId, " url1")
-ur2 <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
-              Sys.getenv('KEY_API'),
-              'id/',
-              stationId)
+url1 <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
+               "key/7df5d2f73a99ed699a1955c87050ea7d/",
+               'id/',
+               "ppp", " url1")
+url2 <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
+               Sys.getenv('KEY_API'),
+               'id/',
+               "ppp","url2")
 
-print(url)
-print(ur2)
+print(url1)
+print(url2)
+
 
 
 #funcion para acceder a la data de una estacion
