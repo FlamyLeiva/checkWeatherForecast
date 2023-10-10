@@ -11,7 +11,7 @@ Sys.getenv('PREDIOS_VLAB') -> PREDIOS_VLAB
 
 # predios vilab (desde API Vilab)  ------------------------------------------------
 #GET(PREDIOS_VLAB) -> prediosVilab
-GET('https://api.vilab.cl/index.php/api/predios/key/7df5d2f73a99ed699a1955c87050ea7d') -> prediosVilab
+GET(Sys.getenv('PREDIOS_VLAB')) -> prediosVilab
 prediosVilab$content |> 
   rawToChar() |> 
   fromJSON() |> 
