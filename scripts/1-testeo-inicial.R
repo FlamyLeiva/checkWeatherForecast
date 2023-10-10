@@ -10,7 +10,7 @@ Sys.getenv('PREDIOS_VLAB') -> PREDIOS_VLAB
 #print('Hola', PREDIOS_VLAB)
 
 # predios vilab (desde API Vilab)  ------------------------------------------------
-
+#PREDIOS_VLAB <- 'https://api.vilab.cl/index.php/api/predios/key/7df5d2f73a99ed699a1955c87050ea7d'
 GET(PREDIOS_VLAB) -> prediosVilab
 
 prediosVilab$content |> 
@@ -24,15 +24,20 @@ prediosVilab$content |>
   rename(id_Analytics = Nombre, 
          id_Vilab = Id) -> prediosVilab
 
+print("predios print")
+print(prediosVilab)
 
+
+Mongo_prod <- GET(Sys.getenv('MDB_PROD'))
+Mongo_prod <- content(response, as = "text")
 
 
 
 # descriptionOrchard (Analytics) ------------------------------------------
-mongo(url = Sys.getenv('MDB_PROD'), 
+mongo(url = Mongo_prod, 
       db = 'db-general',
       collection = 'DescriptionOrchard') -> DescriptionOrchard
-cat('busca', Sys.getenv('MDB_PROD'))
+cat('busca', Mongo_prod)
 
 DescriptionOrchard$find(
   
