@@ -37,6 +37,14 @@ jobs:
           MDB_PROT : ${{ secrets.MDB_PROT}}
           PREDIOS_VLAB : ${{ secrets.PREDIOS_VLAB}}
         run: Rscript -e 'source("scripts/1-testeo-inicial.R")'
+        
+      - name: Print Variables
+        run: 
+          MDB_PROD : ${{ secrets.MDB_PROD}}
+          MDB_PROT : ${{ secrets.MDB_PROT}}
+      
+      
+      
 
 
       # - name: Commit results
