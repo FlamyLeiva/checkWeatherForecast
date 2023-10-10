@@ -40,7 +40,10 @@ DescriptionOrchard$find(
   
 ) -> DescriptionOrchard
 
-print('Buscar',colnames(DescriptionOrchard))
+print(paste('Buscar',colnames(DescriptionOrchard)))
+
+
+
 # std names, selección columnas
 DescriptionOrchard |> 
   unnest_wider(location) |> 
