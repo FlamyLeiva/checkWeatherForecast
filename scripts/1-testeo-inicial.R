@@ -23,10 +23,12 @@ prediosVilab$content |>
   rename(id_Analytics = Nombre, 
          id_Vilab = Id) -> prediosVilab
 
+url1=Sys.getenv('MDB_PROD')
+#url2='mongodb+srv://ti-analytics:oS11dxE6qv3T6dYQ@productioncluster.bllew.mongodb.net/'
 
 
 # descriptionOrchard (Analytics) ------------------------------------------
-mongo(url = 'mongodb+srv://ti-analytics:oS11dxE6qv3T6dYQ@productioncluster.bllew.mongodb.net/', 
+mongo(url = url1, 
       db = 'db-general',
       collection = 'DescriptionOrchard') -> DescriptionOrchard
 
@@ -122,8 +124,8 @@ if (url1 == url2) {
 #funcion para acceder a la data de una estacion
 get_data_for_orchard_station <- function (stationId) {
   url <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
-                #"key/7df5d2f73a99ed699a1955c87050ea7d/",
-                Sys.getenv('KEY_API'),
+                "key/7df5d2f73a99ed699a1955c87050ea7d/",
+                #Sys.getenv('KEY_API'),
                 'id/',
                 stationId)
   response <- GET(url)
