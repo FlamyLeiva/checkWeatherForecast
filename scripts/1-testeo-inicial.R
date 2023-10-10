@@ -26,11 +26,10 @@ prediosVilab$content |>
 
 
 
-Mongo_prod <- GET(Sys.getenv('MDB_PROD'))
 
 
 # descriptionOrchard (Analytics) ------------------------------------------
-mongo(url = Mongo_prod, 
+mongo(url = Sys.getenv('MDB_PROD'), 
       db = 'db-general',
       collection = 'DescriptionOrchard') -> DescriptionOrchard
 cat('busca', Mongo_prod)
