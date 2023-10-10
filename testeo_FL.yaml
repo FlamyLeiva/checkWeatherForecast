@@ -1,6 +1,11 @@
+name: Descarga forecast horario
+
 on:
-  push:
-    branches: branch-FL
+  push: 
+    branches:
+     - main
+  # schedule:
+  #   - cron: '0 * * * *'
 
 jobs:
   import-data:
@@ -14,6 +19,7 @@ jobs:
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
           packages: |
+            any::pacman 
             any::tidyverse 
             any::mongolite
             any::jsonlite
@@ -25,7 +31,19 @@ jobs:
 
 
       - name: Import data
+        env: 
+          KEY_API : ${{ secrets.KEY_API}}
+          MDB_PROD : ${{ secrets.MDB_PROD}}
+          MDB_PROT : ${{ secrets.MDB_PROT}}
+          PREDIOS_VLAB : ${{ secrets.PREDIOS_VLAB}}
         run: Rscript -e 'source("scripts/1-testeo-inicial.R")'
+        
+      # - name: Print Variables
+      #   run: |
+      #   echo "Output [${{secrets.MDB_PROD}}]"
+      
+      
+      
 
 
       # - name: Commit results
@@ -36,4 +54,4 @@ jobs:
       #     git commit -m 'Data updated' || echo "No changes to commit"
       #     git push origin || echo "No changes to commit"
 
-YAML files are notoriously finicky with regard to spacing. Each indentation you see above is done with two spaces (not tabs). Follow this pattern to avoid headaches. 
+#YAML files are notoriously finicky with regard to spacing. Each indentation you see above is done with two spaces (not tabs). Follow this pattern to avoid headaches. 

@@ -4,8 +4,6 @@ pacman::p_load(httr,
                mongolite, 
                tidyverse)
 
-#pp
-
 
 
 Sys.getenv('PREDIOS_VLAB') -> PREDIOS_VLAB
@@ -71,7 +69,7 @@ infoOrchards_Analytics <- subset(infoOrchards_Analytics, !is.na(id_Vilab))
 
 # Descargar predicciones ------------------------------------------------
 
- 
+
 #tabla de dupla nombre de orchard y id asignado
 orchard_station <- infoOrchards_Analytics %>%
   select(orchard, id_Vilab) %>%
