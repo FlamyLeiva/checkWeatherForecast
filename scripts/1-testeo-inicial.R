@@ -95,7 +95,8 @@ orchard_station <- infoOrchards_Analytics %>%
 #funcion para acceder a la data de una estacion
 get_data_for_orchard_station <- function (stationId) {
   url <- paste0('https://api.vilab.cl/index.php/api/clima_pro/',
-                Sys.getenv('KEY_API'),
+                "key/7df5d2f73a99ed699a1955c87050ea7d/",
+                #Sys.getenv('KEY_API'),
                 'id/',
                 stationId)
   response <- GET(url)
@@ -152,7 +153,8 @@ print(all_forecasts)
 
 
 # Subir los datos a mongo -------------------------------------
-mongo(url = Sys.getenv('MDB_PROT'), 
+mongo(#url = Sys.getenv('MDB_PROT'), 
+  url = 'mongodb+srv://ti-analytics:pO3xLskbi0vJz4nE@prototypecluster.4cmnn9u.mongodb.net/'
       db = 'forecastWeather',
       collection = 'test6') -> forecastWeather
 
