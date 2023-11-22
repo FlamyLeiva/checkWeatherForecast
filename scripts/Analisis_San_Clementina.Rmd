@@ -1,0 +1,234 @@
+---
+title: "predicciones_6_7"
+author: "Belén Pintor"
+date: "11/21/2023"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+pacman::p_load(httr,
+               jsonlite, 
+               mongolite, 
+               tidyverse)
+```
+
+
+```{r}
+clima_horario<- read.csv("clima_horario_6_7.csv")
+predicciones<- read.csv("predicciones_6_7.csv")
+```
+
+```{r}
+predicciones_SantaClementina<- predicciones %>%
+  filter(orchard== "Santa_Clementina")
+clima_SantaClementina <-clima_horario %>%
+  filter(orchard== "Santa_Clementina")
+```
+
+
+merge
+
+```{r}
+df_comparacion <- predicciones_SantaClementina %>%
+  inner_join(clima_SantaClementina, by = c("datetimePredict" = "datetime"))
+```
+
+
+```{r}
+df_comparacion <- df_comparacion %>%
+  mutate(diferencia_tempMean = Predict_tempMean - tempMean)%>%
+  mutate(diferencia_Precip= Predict_precipitation - precipitation)%>%
+  mutate(diferencia_horas = round(as.numeric(difftime(datetimePredict, datetime, units = "hours")), 0))
+
+```
+
+
+```{r}
+# Visualización de diferencias de temperatura
+ggplot(df_comparacion, aes(x = diferencia_horas, y = abs(diferencia_tempMean))) +
+  geom_point( alpha = 0.1) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Diferencias de Temperatura entre Predicciones y Clima Efectivo",
+       x = "Diferencia en Horas",
+       y = "Diferencia de Temperatura") +
+  theme_minimal()
+
+```
+```{r}
+summary(df_comparacion$diferencia_tempMean)
+
+```
+
+
+
+```{r}
+resumen_diferencias <- df_comparacion %>%
+  group_by(diferencia_horas) %>%
+  summarize(
+    diferencia_promedio = mean(diferencia_tempMean),
+    diferencia_abs_temp= mean(abs(diferencia_tempMean)),
+    desviacion_estandar = sd(abs(diferencia_tempMean)),
+    mediana= median(diferencia_tempMean),
+    mediana_abs=median(abs(diferencia_tempMean))
+  )
+
+resumen_diferencias<- resumen_diferencias %>%
+  arrange(abs(diferencia_promedio))
+
+#normalizacion de desviaciones
+
+
+```
+
+```{r}
+# Visualización de resultados con promedio y desviación estándar
+ggplot(resumen_diferencias, aes(x = diferencia_horas, y = diferencia_abs_temp)) +
+  geom_line(color = "red", aes(group = 1)) +  # 'group = 1' para que conecte todos los puntos en una línea continua
+  geom_ribbon(aes(ymin = diferencia_abs_temp - desviacion_estandar, ymax = diferencia_abs_temp + desviacion_estandar), alpha = 0.1, fill = "red") +
+  geom_point(aes(x = diferencia_horas, y = diferencia_abs_temp), color = "red", show.legend = TRUE) +
+  geom_point(data = resumen_diferencias, aes(x = diferencia_horas, y = mediana_abs), color = "green", show.legend = TRUE) +
+  labs(title = "Relación entre Diferencia de Horas y Exactitud de Predicciones",
+       x = "Diferencia de Horas",
+       y = "Diferencia Promedio de Temperatura") +
+  scale_color_manual(values = c("red", "green"), labels = c("Promedio", "Mediana")) +  # Leyenda de colores
+  theme_minimal()
+
+
+ggplot(resumen_diferencias, aes(x = diferencia_horas, y = desviacion_estandar / diferencia_abs_temp)) +
+  geom_line(color = "red") +
+  labs(title = "Desviación Estándar Relativa en Función de la Diferencia de Horas (Valores Absolutos)",
+       x = "Diferencia de Horas",
+       y = "Desviación Estándar Relativa") +
+  theme_minimal()
+```
+y para la mediana de temperatura:
+```{r}
+ggplot(resumen_diferencias, aes(x = diferencia_horas, y =mediana)) +
+  geom_line() +
+  geom_ribbon(aes(ymin = diferencia_promedio, ymax = mediana ), alpha = 0.2) +
+  labs(title = "Relación entre Diferencia de Horas y Medianas de temperatura",
+       x = "Diferencia de Horas",
+       y = "Mediana deTemperatura") +
+  geom_point(data = resumen_diferencias, aes(x = diferencia_horas, y = mediana), color = "green") +
+  theme_minimal() +
+  ylim(min(resumen_diferencias$mediana) - 1, max(resumen_diferencias$mediana) + 1)
+
+
+```
+
+Para precipitaciones
+
+```{r}
+resumen_precipitaciones <- df_comparacion %>%
+  group_by(diferencia_horas) %>%
+  summarize(
+    diferencia_promedio = mean(diferencia_Precip),
+    diferencia_abs_precip= mean(abs(diferencia_Precip)),
+    desviacion_estandar = sd(abs(diferencia_Precip)),
+    mediana= median(diferencia_Precip),
+    mediana_abs=median(abs(diferencia_Precip))
+  )
+```
+
+
+grafico:
+
+```{r}
+ggplot(resumen_precipitaciones, aes(x = diferencia_horas, y = diferencia_abs_precip)) +
+  geom_line(color = "red", aes(group = 1)) +  # 'group = 1' para que conecte todos los puntos en una línea continua
+  geom_ribbon(aes(ymin = diferencia_abs_precip - desviacion_estandar, ymax = diferencia_abs_precip + desviacion_estandar), alpha = 0.1, fill = "red") +
+  geom_point(aes(x = diferencia_horas, y = diferencia_abs_precip), color = "red", show.legend = TRUE) +
+  geom_point(data = resumen_precipitaciones, aes(x = diferencia_horas, y = mediana_abs), color = "green", show.legend = TRUE) +
+  labs(title = "Relación entre Diferencia de Horas y Exactitud de Predicciones",
+       x = "Diferencia de Horas",
+       y = "Diferencia Promedio de Precipitaciones") +
+  scale_color_manual(values = c("red", "green"), labels = c("Promedio", "Mediana")) +  # Leyenda de colores
+  theme_minimal()
+
+
+ggplot(resumen_precipitaciones, aes(x = diferencia_horas, y = desviacion_estandar / diferencia_abs_precip)) +
+  geom_line(color = "red") +
+  labs(title = "Desviación Estándar Relativa en Función de la Diferencia de Horas (Valores Absolutos)",
+       x = "Diferencia de Horas",
+       y = "Desviación Estándar Relativa") +
+  theme_minimal()
+```
+
+
+Calidad de prediccion 
+
+1. MAE (Error absoluto medio )
+Temperauea : En promedio difieren en 1.4 unidades
+```{r}
+mae_temperatura <- mean(abs(df_comparacion$diferencia_tempMean))
+mae_precipitacion<- mean(abs(df_comparacion$diferencia_Precip))
+
+mae_temperatura
+mae_precipitacion
+```
+EN promedio, la diferencia absoluta entre las predicciones y los valores reales de temperatura es de aproximadamente 1.41 grados para Santa Clementina
+Precipitación se comparta mejor pero un largo porcentaje de sus valores son cero
+
+
+2. Error Cuadrático Medio (MSE)
+
+```{r}
+mse_temperatura <- mean((abs(df_comparacion$diferencia_tempMean))^2)
+mse_precipitacion <- mean((abs(df_comparacion$diferencia_Precip))^2)
+mse_temperatura 
+mse_precipitacion
+```
+
+3. RMSE
+magnitud promedio de los errores
+Da más peso a los errores más grandes debido al cuadrado de los errores individuales. Es más sensible a valores atípicos.
+```{r}
+rmse_temperatura <- sqrt(mse_temperatura)
+rmse_precipitacion <- sqrt(mse_precipitacion)
+rmse_temperatura
+rmse_precipitacion
+```
+4. Coeficiente de Correlación (Pearson):
+
+Baja correlación con la diferencia horaria. 
+
+```{r}
+correlation_temperatura <- cor(abs(df_comparacion$diferencia_tempMean), df_comparacion$diferencia_horas)
+correlation_precipitacion <- cor(abs(df_comparacion$diferencia_Precip), df_comparacion$diferencia_horas)
+correlation_temperatura
+correlation_precipitacion
+
+
+```
+Muy malas correlaciones entre la diferencia horaria y la predicción
+
+Estadisticas generales sin considerar la diferencia horaria:
+
+1. MAPE error porcentual absoluto medio
+Va del 0 al infinito. mape_temp buena, mape precip mala.
+En promedio varian en un 15% de los valores. --> 
+
+** podría aislarse para cierta diferencia horaria por ejemplo por bloques de 10 horas volver a sacar estadisticas. 
+
+```{r}
+mape_temp <- mean(abs((df_comparacion$Predict_tempMean - df_comparacion$tempMean) / df_comparacion$tempMean) * 100, na.rm = TRUE)
+mape_precip <- mean(abs((df_comparacion$Predict_precipitation - df_comparacion$precipitation) / df_comparacion$precipitation) * 100, na.rm = TRUE)
+
+mape_temp
+mape_precip
+
+```
+2. Correlacion
+
+Muy buea correlación de temperatura. Buen predictor. (Va de -1 a 1 )
+```{r}
+correlation_temp <- cor(df_comparacion$Predict_tempMean, df_comparacion$tempMean, use = "complete.obs")
+correlation_precip <- cor(df_comparacion$Predict_precipitation, df_comparacion$precipitation, use = "complete.obs")
+correlation_temp
+correlation_precip
+```
+
