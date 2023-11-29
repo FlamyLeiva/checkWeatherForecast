@@ -98,7 +98,10 @@ ggplot(resumen_diferencias, aes(x = diferencia_horas, y = diferencia_promedio)) 
 
 ```
 
+QUITAR LOS OUTLAYERS Y GRAFICR DENUEVO
+PROBAR GRAFICOS DE ACERCAMIENTO O ESTACIONES CERCANAS 
 
+REVISAR ESTACIONES CONMAYOR VARIACIÓN 
 ```{r}
 ggplot(resumen_diferencias, aes(x = diferencia_horas, y = diferencia_promedio, color = orchard)) +
   geom_point(size = 3) +
