@@ -29,6 +29,11 @@ clima_SantaClementina <-clima_horario %>%
   filter(orchard== "Santa_Clementina")
 ```
 
+```{r}
+predicciones_SantaClementina%>%
+  mutate(datetimePredict= as.POSIXct(datetimePredict, tz = "America/Santiago"))->test
+```
+
 
 merge
 
@@ -228,6 +233,7 @@ Muy buea correlación de temperatura. Buen predictor. (Va de -1 a 1 )
 ```{r}
 correlation_temp <- cor(df_comparacion$Predict_tempMean, df_comparacion$tempMean, use = "complete.obs")
 correlation_precip <- cor(df_comparacion$Predict_precipitation, df_comparacion$precipitation, use = "complete.obs")
+
 correlation_temp
 correlation_precip
 ```

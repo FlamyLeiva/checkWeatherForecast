@@ -201,4 +201,11 @@ correlation_precipitacion
 
 
 ```
+```{r}
+correlation_temp <- cor(df_comparacion$Predict_tempMean, df_comparacion$tempMean, use = "complete.obs")
+correlation_precip <- cor(df_comparacion$Predict_precipitation, df_comparacion$precipitation, use = "complete.obs")
+correlation_temp
+correlation_precip
+```
+
 

@@ -26,8 +26,11 @@ predicciones<- read.csv("predicciones_6_7.csv")
 merge
 
 ```{r}
-df_comparacion <- predicciones%>%
-  inner_join(clima_horario, by = c("datetimePredict" = "datetime"))
+Comparacion_6_7 <- read_csv("Comparacion_6_7.csv")
+```
+
+```{r}
+df_comparacion<- Comparacion_6_7
 ```
 
 
@@ -60,7 +63,7 @@ summary(df_comparacion$diferencia_tempMean)
 
 ```{r}
 resumen_diferencias <- df_comparacion %>%
-  group_by(diferencia_horas) %>%
+  group_by(diferencia_horas,orchard) %>%
   summarize(
     diferencia_promedio = mean(diferencia_tempMean),
     diferencia_abs_temp= mean(abs(diferencia_tempMean)),
@@ -69,34 +72,66 @@ resumen_diferencias <- df_comparacion %>%
     mediana_abs=median(abs(diferencia_tempMean))
   )
 
+
 resumen_diferencias<- resumen_diferencias %>%
   arrange(abs(diferencia_promedio))
 
 #normalizacion de desviaciones
 
+```
+
+
+```{r}
+glimpse(resumen_diferencias)
+```
+
+
+```{r, echo=FALSE, fig.width=10, fig.height=6}
+ggplot(resumen_diferencias, aes(x = diferencia_horas, y = diferencia_promedio)) +
+  geom_point(position = position_dodge(width = 0.8), size = 0.5) +
+  labs(title = "Diferencia Promedio por Hora",
+       x = "Diferencia Horas",
+       y = "Diferencia Promedio")
+
+
+
 
 ```
+
+
+```{r}
+ggplot(resumen_diferencias, aes(x = diferencia_horas, y = diferencia_promedio, color = orchard)) +
+  geom_point(size = 3) +
+  labs(title = "Diferencia Promedio por Hora",
+       x = "Diferencia Horas",
+       y = "Diferencia Promedio") +
+  facet_wrap(~orchard, scales = "free_y")
+
+```
+
+
+```{r}
+ggplot(resumen_diferencias, aes(x = diferencia_horas, y = diferencia_abs_temp, color = orchard)) +
+  geom_line(position = position_dodge(width = 0.8), size = 1) +
+  labs(title = "Diferencia Absoluta Promedio por Hora",
+       x = "Diferencia Horas",
+       y = "Diferencia Absoluta Promedio")
+
+
+
+
+```
+
+
+
 
 ```{r}
 # Visualización de resultados con promedio y desviación estándar
 ggplot(resumen_diferencias, aes(x = diferencia_horas, y = diferencia_abs_temp)) +
-  geom_line(color = "red", aes(group = 1)) +  # 'group = 1' para que conecte todos los puntos en una línea continua
-  geom_ribbon(aes(ymin = diferencia_abs_temp - desviacion_estandar, ymax = diferencia_abs_temp + desviacion_estandar), alpha = 0.1, fill = "red") +
-  geom_point(aes(x = diferencia_horas, y = diferencia_abs_temp), color = "red", show.legend = TRUE) +
-  geom_point(data = resumen_diferencias, aes(x = diferencia_horas, y = mediana_abs), color = "green", show.legend = TRUE) +
-  labs(title = "Relación entre Diferencia de Horas y Exactitud de Predicciones",
-       x = "Diferencia de Horas",
-       y = "Diferencia Promedio de Temperatura") +
-  scale_color_manual(values = c("red", "green"), labels = c("Promedio", "Mediana")) +  # Leyenda de colores
-  theme_minimal()
+  geom_point(aes(x = diferencia_horas, y = diferencia_abs_temp), color = "red", show.legend = TRUE) 
+  
 
 
-ggplot(resumen_diferencias, aes(x = diferencia_horas, y = desviacion_estandar / diferencia_abs_temp)) +
-  geom_line(color = "red") +
-  labs(title = "Desviación Estándar Relativa en Función de la Diferencia de Horas (Valores Absolutos)",
-       x = "Diferencia de Horas",
-       y = "Desviación Estándar Relativa") +
-  theme_minimal()
 ```
 y para la mediana de temperatura:
 ```{r}
