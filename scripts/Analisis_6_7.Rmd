@@ -23,6 +23,7 @@ predicciones<- read.csv("predicciones_6_7.csv")
 ```
 
 
+
 merge
 
 ```{r}
@@ -36,24 +37,14 @@ df_comparacion<- Comparacion_6_7
 
 ```{r}
 df_comparacion <- df_comparacion %>%
-  mutate(diferencia_tempMean = Predict_tempMean - tempMean)%>%
-  mutate(diferencia_Precip= Predict_precipitation - precipitation)%>%
+  mutate(diferencia_tempMean = abs(Predict_tempMean - tempMean))%>%
+  mutate(diferencia_Precip= abs(Predict_precipitation - precipitation))%>%
   mutate(diferencia_horas = round(as.numeric(difftime(datetimePredict, datetime, units = "hours")), 0))
 
 ```
 
 
-```{r}
-# Visualización de diferencias de temperatura
-ggplot(df_comparacion, aes(x = diferencia_horas, y = abs(diferencia_tempMean))) +
-  geom_point( alpha = 0.1) +
-  geom_smooth(method = "lm", se = FALSE) +
-  labs(title = "Diferencias de Temperatura entre Predicciones y Clima Efectivo",
-       x = "Diferencia en Horas",
-       y = "Diferencia de Temperatura") +
-  theme_minimal()
 
-```
 ```{r}
 summary(df_comparacion$diferencia_tempMean)
 
@@ -62,21 +53,30 @@ summary(df_comparacion$diferencia_tempMean)
 
 
 ```{r}
-resumen_diferencias <- df_comparacion %>%
+resumen_diferencias_orchards <- df_comparacion %>%
   group_by(diferencia_horas,orchard) %>%
   summarize(
-    diferencia_promedio = mean(diferencia_tempMean),
-    diferencia_abs_temp= mean(abs(diferencia_tempMean)),
+    diferencia_promedio= mean(abs(diferencia_tempMean)),
     desviacion_estandar = sd(abs(diferencia_tempMean)),
     mediana= median(diferencia_tempMean),
-    mediana_abs=median(abs(diferencia_tempMean))
+  )
+
+resumen_diferencias_total <- df_comparacion %>%
+  group_by(diferencia_horas) %>%
+  summarize(
+    diferencia_promedio = mean(diferencia_tempMean, na.rm = TRUE),
+    desviacion_estandar = sd(abs(diferencia_tempMean),na.rm=TRUE),
+    mediana = median(diferencia_tempMean, na.rm = TRUE)
   )
 
 
-resumen_diferencias<- resumen_diferencias %>%
-  arrange(abs(diferencia_promedio))
 
-#normalizacion de desviaciones
+resumen_diferencias_orchards<- resumen_diferencias %>%
+  arrange(diferencia_promedio)
+
+resumen_diferencias_total<- resumen_diferencias %>%
+  arrange(diferencia_promedio)
+
 
 ```
 
