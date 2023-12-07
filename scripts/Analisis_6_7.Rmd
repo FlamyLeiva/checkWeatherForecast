@@ -405,8 +405,44 @@ knitr::kable(matriz_confusion, caption = "Matriz de confusión precipitaciones",
 
 mostrar_matriz_confusion_porcentaje(matriz_confusion)
 ```
+Ahoea considerando como precipitación los valores superiores a 2.2 milimetros se tiene la siguiente matriz. 
 
 
+```{r}
+generar_matriz_confusion <- function(predicciones, observaciones) {
+  # Filtrar valores mayores a 2.2
+  predicciones_filtradas <- predicciones[predicciones <= 2.2]
+  observaciones_filtradas <- observaciones[observaciones <= 2.2]
+  
+  matriz_confusion <- matrix(0, nrow = 2, ncol = 2, dimnames = list(c("Predicción 0", "Predicción > 0"), c("Observación 0", "Observación > 0")))
+  
+  # Llenar la matriz según las condiciones
+  matriz_confusion["Predicción 0", "Observación 0"] <- sum(predicciones_filtradas == 0 & observaciones_filtradas == 0)
+  matriz_confusion["Predicción 0", "Observación > 0"] <- sum(predicciones_filtradas == 0 & observaciones_filtradas > 0)
+  matriz_confusion["Predicción > 0", "Observación 0"] <- sum(predicciones_filtradas > 0 & observaciones_filtradas == 0)
+  matriz_confusion["Predicción > 0", "Observación > 0"] <- sum(predicciones_filtradas > 0 & observaciones_filtradas > 0)
+  return(matriz_confusion)
+}
+
+mostrar_matriz_confusion_porcentaje <- function(matriz_confusion) {
+  total <- sum(matriz_confusion)
+  matriz_confusion_porcentaje <- round((matriz_confusion / total) * 100, 2)
+  knitr::kable(matriz_confusion_porcentaje, caption = "Matriz de confusión para precipitaciones (porcentajes)", align = "c")
+}
+
+# Datos
+predicciones <- fecha_precipitaciones$Predict_precipitation
+observaciones <- fecha_precipitaciones$precipitation
+
+# Calcular y mostrar la primera matriz con valores sin filtrar
+matriz_confusion <- generar_matriz_confusion(predicciones, observaciones)
+knitr::kable(matriz_confusion, caption = "Matriz de confusión precipitaciones (sin filtro)", align = "c")
+
+# Calcular y mostrar la segunda matriz con valores filtrados
+matriz_confusion_filtrada <- generar_matriz_confusion(predicciones, observaciones)
+mostrar_matriz_confusion_porcentaje(matriz_confusion_filtrada)
+
+```
 
 
 
