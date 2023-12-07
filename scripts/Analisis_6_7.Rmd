@@ -18,144 +18,336 @@ pacman::p_load(httr,
 
 
 ```{r}
-clima_horario<- read.csv("clima_horario_6_7.csv")
-predicciones<- read.csv("predicciones_6_7.csv")
-```
-
-
-
-merge
-
-```{r}
-Comparacion_6_7 <- read_csv("Comparacion_6_7.csv")
-```
-
-```{r}
-df_comparacion<- Comparacion_6_7
+# clima_horario<- read.csv("clima_horario_6_7.csv")
+# predicciones<- read.csv("predicciones_6_7.csv")
 ```
 
 
 ```{r}
-df_comparacion <- df_comparacion %>%
+Comparacion_6_7 <- read_csv("../Comparacion_6_7.csv")
+```
+
+Crear una copia con los delta de las predicciones incluidos 
+
+```{r}
+df_comparacion <- Comparacion_6_7 %>%
   mutate(diferencia_tempMean = abs(Predict_tempMean - tempMean))%>%
   mutate(diferencia_Precip= abs(Predict_precipitation - precipitation))%>%
-  mutate(diferencia_horas = round(as.numeric(difftime(datetimePredict, datetime, units = "hours")), 0))
+  mutate(diferencia_horas = round(as.numeric(difftime(datetimePredict, datetime, units = "hours")), 0)) %>%
+  filter(diferencia_horas>0)
 
 ```
 
-
+Estadisticas de la diferencia entre la temperatura predecida por el modelo y la temperatura real para una hora. 
+Abajo los deciles 
 
 ```{r}
 summary(df_comparacion$diferencia_tempMean)
-
+quantile(df_comparacion$diferencia_tempMean, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
 ```
 
 
 
 ```{r}
-resumen_diferencias_orchards <- df_comparacion %>%
+resumen_temperatura_orchards <- df_comparacion %>%
   group_by(diferencia_horas,orchard) %>%
   summarize(
     diferencia_promedio= mean(abs(diferencia_tempMean)),
     desviacion_estandar = sd(abs(diferencia_tempMean)),
-    mediana= median(diferencia_tempMean),
-  )
+    mediana= median(diferencia_tempMean)) %>%
+    arrange(diferencia_promedio)
 
-resumen_diferencias_total <- df_comparacion %>%
+resumen_temperatura_total <- df_comparacion %>%
   group_by(diferencia_horas) %>%
   summarize(
     diferencia_promedio = mean(diferencia_tempMean, na.rm = TRUE),
     desviacion_estandar = sd(abs(diferencia_tempMean),na.rm=TRUE),
-    mediana = median(diferencia_tempMean, na.rm = TRUE)
-  )
-
-
-
-resumen_diferencias_orchards<- resumen_diferencias %>%
+    mediana = median(diferencia_tempMean, na.rm = TRUE)) %>%
   arrange(diferencia_promedio)
 
-resumen_diferencias_total<- resumen_diferencias %>%
-  arrange(diferencia_promedio)
+```
+
+Resumen agrupado que considera todos los huertos
+
+```{r}
+ggplot(resumen_temperatura_total, aes(x = diferencia_horas, y = diferencia_promedio)) +
+  geom_point(size = 1.5, alpha = 0.7, position = position_dodge(width = 0.5)) +  # Ajustamos la posición de los puntos
+  geom_line(aes(y = desviacion_estandar, color = "Desviación Estándar"), linetype = "dashed") +
+  geom_line(aes(y = mediana, color = "Mediana"), linetype = "dashed") +
+
+  labs(title = "Relación entre Diferencia Horaria y Diferencia de temperatura promedio",
+       x = "Diferencia Horaria",
+       y = "Delta de temperatura (grados)")
+```
+
+Gráfico de todos los huertos
+
+```{r}
+ggplot(resumen_temperatura_orchards, aes(x = diferencia_horas, y = diferencia_promedio, color = "Diferencia Promedio")) +
+  geom_point(size = 0.6, position = position_dodge(width = 0.5)) +  
+  geom_line(aes(y = desviacion_estandar, color = "Desviación Estándar"), linetype = "dashed") +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia de temperatura promedio",
+       x = "Diferencia Horaria",
+       y = "Delta de temperatura (grados)")+
+  scale_color_manual(values = c("Diferencia Promedio" = "blue", "Desviación Estándar" = "red"))
+```
+
+Filtro outliers de resumen_orchards
+
+```{r}
+
+resumen_temperatura_orchards <- resumen_temperatura_orchards %>%
+  drop_na(diferencia_promedio)
+
+# Calcular el rango intercuartílico para la columna diferencia_promedio
+Q1 <- quantile(resumen_temperatura_orchards$diferencia_promedio, 0.25, na.rm = TRUE)
+Q3 <- quantile(resumen_temperatura_orchards$diferencia_promedio, 0.75, na.rm = TRUE)
+IQR_value <- Q3 - Q1
+
+# Límites para identificar outliers
+upper_limit <- Q3 + 1.5 * IQR_value
+
+# Filtrar el dataframe para excluir outliers
+resumen_temperatura_orchards_filtered <- resumen_temperatura_orchards %>%
+  filter(diferencia_promedio <= upper_limit)
+
+```
 
 
+Todos los orchards sin los outliers superiores
+```{r}
+ggplot(resumen_temperatura_orchards_filtered, aes(x = diferencia_horas, y = diferencia_promedio, group = orchard)) +
+  geom_line(color = "blue", alpha = 0.5) +
+  geom_point(size = 0.7, alpha = 0.6, position = position_dodge(width = 0.5)) +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio",
+       x = "Diferencia Horaria de predicción",
+       y = "Delta de temperatura (grados)") +
+  scale_x_continuous(breaks = seq(0, 100, by = 10))
+
+```
+
+Identificar los 5 orchards con mayor diferencia de temperatura promedio y los con menor.
+
+
+```{r}
+# Ordenar el dataframe por la columna diferencia_promedio en orden descendente
+
+promedio_orchards <- df_comparacion %>%
+  group_by(orchard) %>%
+  summarize(
+    diferencia_promedio = mean(diferencia_tempMean, na.rm = TRUE),
+    desviacion_estandar = sd(abs(diferencia_tempMean),na.rm=TRUE),
+    mediana = median(diferencia_tempMean, na.rm = TRUE))%>%
+  arrange(desc(diferencia_promedio))
+
+# Eliminar las filas para Santa_Lucia y Corinto
+promedio_orchards <- promedio_orchards %>%
+  filter(!orchard %in% c("Santa_Lucia", "Corinto"))
+
+
+# Seleccionar los 5 orchards con la mayor pendiente
+top_orchards_max <- promedio_orchards %>%
+  top_n(5, wt = diferencia_promedio)
+
+top_orchards_min <-promedio_orchards %>%
+    tail(5)
+
+```
+
+Gráfico de los 5 orchards con mayor delta de temperatura en promedio y los con menor. 
+
+```{r}
+plot_orchards <- function(data, title) {
+  ggplot(data, aes(x = orchard, y = diferencia_promedio, fill = orchard)) +
+    geom_bar(stat = "identity") +
+    theme_minimal() +
+    labs(title = title, x = "Orchard", y = "Diferencia Promedio de temperatura (grados")
+}
+
+# Graficar los 5 orchards con la mayor pendiente
+plot_max <- plot_orchards(top_orchards_max, "Top 5 Orchards - Mayor diferencia promedio")
+
+# Graficar los 5 orchards con la menor pendiente
+plot_min <- plot_orchards(top_orchards_min, "Top 5 Orchards - Menor diferencia promedio")
+
+print(plot_max)
+print(plot_min)
+
+```
+Los con mayor, corresponden a los huertos que en promedio tienen una mayor diferencia entre los valores predecidos y los valores reales de temperatura. Para esto se considera el promedio de las diferencias para las distintas diferencias horarias. 
+
+
+Filtramos la data para ver como se comportan lo huertos que tienen peor promedio de predicción de temperatura
+```{r}
+resumen_max_temperatura <- resumen_temperatura_orchards %>%
+  filter(orchard %in% top_orchards_max$orchard) 
+```
+
+```{r}
+ggplot(resumen_max_temperatura, aes(x = diferencia_horas, y = diferencia_promedio, color = orchard)) +
+  geom_line()+
+  geom_point() +
+  #geom_line(aes(y = desviacion_estandar), linetype = "dashed") +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio para Top 5 Orchards",
+       x = "Diferencia Horaria",
+       y = "Diferencia de temperatura (grados)",
+       color = "Orchard")
+```
+APS_Miraflores, APS_Rauquen y Santa_Javiera oscilan de manera similar a lo largo del tiempo
+
+Corinto y Santa Lucía estaban en los outiliers y fueron sacados. 
+
+Ahroa filtro tambien diferencia horaria >0
+
+Acercamiento por orchard
+
+De los con peor predicción promedio. 
+
+1. APS_Rauquen
+
+```{r}
+subset_data <- resumen_temperatura_orchards %>%
+  filter(orchard == "APS_Rauquen")%>% 
+  filter(diferencia_horas>0)
+
+ggplot(subset_data, aes(x = diferencia_horas, y = diferencia_promedio, color = "Diferencia Promedio")) +
+  geom_point() +
+  geom_line()+
+  #geom_line(aes(y = desviacion_estandar, color = "Desviación Estándar"), linetype = "dashed") +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio para APS_Rauquen",
+       x = "Diferencia Horaria",
+       y = "Diferencia de temperatura (grados)")
+
+```
+
+2. Santa_Lucia 
+(Se encuentra como outlier)
+
+```{r}
+subset_data <- resumen_temperatura_orchards %>%
+  filter(orchard == "Santa_Lucia")%>% 
+  filter(diferencia_horas>0)
+
+ggplot(subset_data, aes(x = diferencia_horas, y = diferencia_promedio, color = "Diferencia Promedio")) +
+  geom_point() +
+  geom_line()+
+  #geom_line(aes(y = desviacion_estandar, color = "Desviación Estándar"), linetype = "dashed") +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio para Santa_Lucia",
+       x = "Diferencia Horaria",
+       y = "Diferencia de temperatura (grados)")
+
+```
+
+De los con mejor predicción promedio:
+
+```{r}
+resumen_min_temperatura <- resumen_temperatura_orchards %>%
+  filter(orchard %in% top_orchards_min$orchard) 
+```
+
+```{r}
+ggplot(resumen_min_temperatura, aes(x = diferencia_horas, y = diferencia_promedio, color = orchard)) +
+  geom_line()+
+  geom_point() +
+  #geom_line(aes(y = desviacion_estandar), linetype = "dashed") +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio para Top 5 Orchards",
+       x = "Diferencia Horaria",
+       y = "Diferencia de temperatura (grados)",
+       color = "Orchard")
+```
+
+1. Quilicura
+
+```{r}
+
+subset_data <- resumen_temperatura_orchards %>%
+  filter(orchard == "Quilicura")
+
+# Crear el gráfico
+ggplot(subset_data, aes(x = diferencia_horas, y = diferencia_promedio, color = "Diferencia Promedio")) +
+  geom_point() +
+  geom_line(aes(y = desviacion_estandar, color = "Desviación Estándar"), linetype = "dashed") +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio para Quilicura",
+       x = "Diferencia Horaria",
+       y = "Valor") +
+  scale_color_manual(values = c("Diferencia Promedio" = "blue", "Desviación Estándar" = "red"))
+
+
+```
+
+
+
+2. Recurso_RK 
+```{r}
+
+subset_data <- resumen_temperatura_orchards %>%
+  filter(orchard == "Recurso_RK")
+
+# Crear el gráfico
+ggplot(subset_data, aes(x = diferencia_horas, y = diferencia_promedio, color = "Diferencia Promedio")) +
+  geom_line()+
+  geom_point() +
+  geom_line(aes(y = desviacion_estandar, color = "Desviación Estándar"), linetype = "dashed") +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio para Recurso_RK",
+       x = "Diferencia Horaria",
+       y = "Diferencia de temperatura (grados)") +
+  scale_color_manual(values = c("Diferencia Promedio" = "blue", "Desviación Estándar" = "red"))
+
+
+```
+Análisis provincial 
+
+```{r}
+mongo(url = 'mongodb+srv://ti-analytics:oS11dxE6qv3T6dYQ@productioncluster.bllew.mongodb.net/', 
+      db = 'db-general',
+      collection = 'DescriptionOrchard') -> Description_orchard
+
+Description_orchard$find() %>%
+  as_tibble() -> Description_orchard
+
+provincias<- Description_orchard %>%
+  select(orchard=value, provincia)
+```
+
+Agrego provincias al resumen de temperatura por huerto filtrado
+```{r}
+resumen_temperatura_orchards_filtered <- resumen_temperatura_orchards_filtered %>%
+  left_join(provincias, by = "orchard")
+
+df_comparacion <-df_comparacion %>%
+  left_join(provincias, by="orchard")
 ```
 
 
 ```{r}
-glimpse(resumen_diferencias)
-```
-
-
-```{r, echo=FALSE, fig.width=10, fig.height=6}
-ggplot(resumen_diferencias, aes(x = diferencia_horas, y = diferencia_promedio)) +
-  geom_point(position = position_dodge(width = 0.8), size = 0.5) +
-  labs(title = "Diferencia Promedio por Hora",
-       x = "Diferencia Horas",
-       y = "Diferencia Promedio")
-
-
-
+ggplot(resumen_temperatura_orchards_filtered, aes(x = diferencia_horas, y = diferencia_promedio, group = orchard, color=provincia)) +
+  geom_line( alpha = 0.5) +
+  geom_point(size = 0.7, alpha = 0.6, position = position_dodge(width = 0.5)) +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio",
+       x = "Diferencia Horaria de predicción",
+       y = "Delta de temperatura (grados)") +
+  scale_x_continuous(breaks = seq(0, 100, by = 10))
 
 ```
 
-QUITAR LOS OUTLAYERS Y GRAFICR DENUEVO
-PROBAR GRAFICOS DE ACERCAMIENTO O ESTACIONES CERCANAS 
-
-REVISAR ESTACIONES CONMAYOR VARIACIÓN 
+Provincias por separado para temperatura
 ```{r}
-ggplot(resumen_diferencias, aes(x = diferencia_horas, y = diferencia_promedio, color = orchard)) +
-  geom_point(size = 3) +
-  labs(title = "Diferencia Promedio por Hora",
-       x = "Diferencia Horas",
-       y = "Diferencia Promedio") +
-  facet_wrap(~orchard, scales = "free_y")
+ggplot(resumen_temperatura_orchards_filtered, aes(x = diferencia_horas, y = diferencia_promedio, group = orchard, color = provincia)) +
+  geom_line(alpha = 0.5,size=0.2) +
+  geom_point(size = 0.3, alpha = 0.6, position = position_dodge(width = 0.5)) +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio de temperatura",
+       x = "Diferencia Horaria de predicción",
+       y = "Delta de temperatura (grados)") +
+  scale_x_continuous(breaks = seq(0, 100, by = 10)) +
+  facet_wrap(~provincia)
 
 ```
 
+Para precipiraciones
 
 ```{r}
-ggplot(resumen_diferencias, aes(x = diferencia_horas, y = diferencia_abs_temp, color = orchard)) +
-  geom_line(position = position_dodge(width = 0.8), size = 1) +
-  labs(title = "Diferencia Absoluta Promedio por Hora",
-       x = "Diferencia Horas",
-       y = "Diferencia Absoluta Promedio")
-
-
-
-
-```
-
-
-
-
-```{r}
-# Visualización de resultados con promedio y desviación estándar
-ggplot(resumen_diferencias, aes(x = diferencia_horas, y = diferencia_abs_temp)) +
-  geom_point(aes(x = diferencia_horas, y = diferencia_abs_temp), color = "red", show.legend = TRUE) 
-  
-
-
-```
-y para la mediana de temperatura:
-```{r}
-ggplot(resumen_diferencias, aes(x = diferencia_horas, y =mediana)) +
-  geom_line() +
-  geom_ribbon(aes(ymin = diferencia_promedio, ymax = mediana ), alpha = 0.2) +
-  labs(title = "Relación entre Diferencia de Horas y Medianas de temperatura",
-       x = "Diferencia de Horas",
-       y = "Mediana deTemperatura") +
-  geom_point(data = resumen_diferencias, aes(x = diferencia_horas, y = mediana), color = "green") +
-  theme_minimal() +
-  ylim(min(resumen_diferencias$mediana) - 1, max(resumen_diferencias$mediana) + 1)
-
-
-```
-
-Para precipitaciones
-
-```{r}
-resumen_precipitaciones <- df_comparacion %>%
-  group_by(diferencia_horas) %>%
+precipitaciones_provincias <- df_comparacion %>%
+  group_by(diferencia_horas,orchard,provincia) %>%
   summarize(
     diferencia_promedio = mean(diferencia_Precip),
     diferencia_abs_precip= mean(abs(diferencia_Precip)),
@@ -163,73 +355,102 @@ resumen_precipitaciones <- df_comparacion %>%
     mediana= median(diferencia_Precip),
     mediana_abs=median(abs(diferencia_Precip))
   )
+ggplot(precipitaciones_provincias, aes(x = diferencia_horas, y = diferencia_promedio, group = orchard, color = provincia)) +
+  geom_line(alpha = 0.5,size=0.2) +
+  geom_point(size = 0.3, alpha = 0.6, position = position_dodge(width = 0.5)) +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio",
+       x = "Diferencia Horaria de predicción",
+       y = "Delta de temperatura (grados)") +
+  scale_x_continuous(breaks = seq(0, 100, by = 10)) +
+  facet_wrap(~provincia)
+```
+
+Para precipitaciones en fecha desde el 6/11 al 13/11
+
+```{r}
+fecha_precipitaciones <- df_comparacion %>%
+  filter(datetime > "2023-11-07 00:00:00", datetime<"2023-11-13 00:00:00")
 ```
 
 
-grafico:
+Predicciones de lluvia mayores a cero 
 
 ```{r}
-ggplot(resumen_precipitaciones, aes(x = diferencia_horas, y = diferencia_abs_precip)) +
-  geom_line(color = "red", aes(group = 1)) +  # 'group = 1' para que conecte todos los puntos en una línea continua
-  geom_ribbon(aes(ymin = diferencia_abs_precip - desviacion_estandar, ymax = diferencia_abs_precip + desviacion_estandar), alpha = 0.1, fill = "red") +
-  geom_point(aes(x = diferencia_horas, y = diferencia_abs_precip), color = "red", show.legend = TRUE) +
-  geom_point(data = resumen_precipitaciones, aes(x = diferencia_horas, y = mediana_abs), color = "green", show.legend = TRUE) +
-  labs(title = "Relación entre Diferencia de Horas y Exactitud de Predicciones",
-       x = "Diferencia de Horas",
-       y = "Diferencia Promedio de Precipitaciones") +
-  scale_color_manual(values = c("red", "green"), labels = c("Promedio", "Mediana")) +  # Leyenda de colores
-  theme_minimal()
+generar_matriz_confusion <- function(predicciones, observaciones) {
+  matriz_confusion <- matrix(0, nrow = 2, ncol = 2, dimnames = list(c("Predicción 0", "Predicción > 0"), c("Observación 0", "Observación > 0")))
+  
+  # Llenar la matriz según las condiciones
+  matriz_confusion["Predicción 0", "Observación 0"] <- sum(predicciones == 0 & observaciones == 0)
+  matriz_confusion["Predicción 0", "Observación > 0"] <- sum(predicciones == 0 & observaciones > 0)
+  matriz_confusion["Predicción > 0", "Observación 0"] <- sum(predicciones > 0 & observaciones == 0)
+  matriz_confusion["Predicción > 0", "Observación > 0"] <- sum(predicciones > 0 & observaciones > 0)
+  return(matriz_confusion)
+}
+
+mostrar_matriz_confusion_porcentaje <- function(matriz_confusion) {
+  total <- sum(matriz_confusion)
+  matriz_confusion_porcentaje <- round((matriz_confusion / total) * 100, 2)
+    knitr::kable(matriz_confusion_porcentaje, caption = "Matriz de confusión para precipitaciones (porcentajes)", align = "c")
+
+}
 
 
-ggplot(resumen_precipitaciones, aes(x = diferencia_horas, y = desviacion_estandar / diferencia_abs_precip)) +
-  geom_line(color = "red") +
-  labs(title = "Desviación Estándar Relativa en Función de la Diferencia de Horas (Valores Absolutos)",
-       x = "Diferencia de Horas",
-       y = "Desviación Estándar Relativa") +
-  theme_minimal()
+# Datos
+predicciones <- fecha_precipitaciones$Predict_precipitation
+observaciones <- fecha_precipitaciones$precipitation
+
+matriz_confusion <- generar_matriz_confusion(predicciones, observaciones)
+knitr::kable(matriz_confusion, caption = "Matriz de confusión precipitaciones", align = "c")
+
+
+mostrar_matriz_confusion_porcentaje(matriz_confusion)
 ```
 
 
-Calidad de prediccion 
-
-1. MAE (Error absoluto medio )
-Temperauea 
-```{r}
-mae_temperatura <- mean(abs(df_comparacion$diferencia_tempMean))
-mae_precipitacion<- mean(abs(df_comparacion$diferencia_Precip))
-
-mae_temperatura
-mae_precipitacion
-```
-EN promedio, la diferencia absoluta entre las predicciones y los valores reales de temperatura es de aproximadamente 1.41 grados para Santa Clementina
-Precipitación se comparta mejor pero un largo porcentaje de sus valores son cero
 
 
-2. Error Cuadrático Medio (MSE)
 
-```{r}
-mse_temperatura <- mean((abs(df_comparacion$diferencia_tempMean))^2)
+
+
+
+
+
+
+
+
+Calidad de prediccion, métricas generales del modelo. 
+
+```{r Calculo_Metricas, echo=FALSE}
+# Calcular MAE
+mae_temperatura <- mean(abs(df_comparacion$diferencia_tempMean), na.rm = TRUE)
+mae_precipitacion <- mean(abs(df_comparacion$diferencia_Precip), na.rm = TRUE)
+
+# Calcular MSE
+mse_temperatura <- mean((abs(df_comparacion$diferencia_tempMean))^2, na.rm = TRUE)
 mse_precipitacion <- mean((abs(df_comparacion$diferencia_Precip))^2)
-mse_temperatura 
-mse_precipitacion
-```
 
-3. RMSE
-magnitud promedio de los errores
-```{r}
+# Calcular RMSE
 rmse_temperatura <- sqrt(mse_temperatura)
 rmse_precipitacion <- sqrt(mse_precipitacion)
-rmse_temperatura
-rmse_precipitacion
+
+# Calcular correlación
+correlation_temperatura <- with(df_comparacion, cor(abs(diferencia_tempMean[complete.cases(diferencia_tempMean, diferencia_horas)]), diferencia_horas[complete.cases(diferencia_tempMean, diferencia_horas)]))
+correlation_precipitacion <- cor(abs(df_comparacion$diferencia_Precip), df_comparacion$diferencia_horas)
 ```
-4. Coeficiente de Correlación (Pearson):
 
 ```{r}
-correlation_temperatura <- cor(abs(df_comparacion$diferencia_tempMean), df_comparacion$diferencia_horas)
-correlation_precipitacion <- cor(abs(df_comparacion$diferencia_Precip), df_comparacion$diferencia_horas)
-correlation_temperatura
-correlation_precipitacion
+# Crear un data frame con las métricas
+metricas <- data.frame(
+  Variable = c("Temperatura", "Precipitación"),
+  MAE = c(mae_temperatura, mae_precipitacion),
+  MSE = c(mse_temperatura, mse_precipitacion),
+  RMSE = c(rmse_temperatura, rmse_precipitacion),
+  Correlacion = c(correlation_temperatura, correlation_precipitacion)
+)
 
+# Imprimir la tabla
+knitr::kable(metricas, caption = "Métricas de calidad de predicción", align = "c")
 
 ```
+
 

@@ -1,0 +1,215 @@
+---
+title: "Garces_Weather"
+author: "Belén Pintor"
+date: "12/5/2023"
+output: html_document
+---
+
+```{r}
+pacman::p_load(httr,
+               jsonlite, 
+               mongolite, 
+               tidyverse)
+```
+
+
+```{r}
+clima_horario<- read.csv("clima_horario_6_7.csv")
+predicciones<- read.csv("predicciones_6_7.csv")
+```
+
+
+
+merge
+
+```{r}
+Comparacion_6_7 <- read_csv("Comparacion_6_7.csv")
+```
+
+```{r}
+df_comparacion<- Comparacion_6_7
+```
+
+
+```{r}
+df_comparacion <- df_comparacion %>%
+  mutate(diferencia_tempMean = abs(Predict_tempMean - tempMean))%>%
+  mutate(diferencia_Precip= abs(Predict_precipitation - precipitation))%>%
+  mutate(diferencia_horas = round(as.numeric(difftime(datetimePredict, datetime, units = "hours")), 0))
+
+df_comparacion <-df_comparacion %>%
+  filter(!orchard %in% c("Santa_Lucia", "Corinto"))
+```
+
+```{r}
+
+df_comparacion <- df_comparacion %>%
+  mutate(Garces = ifelse(client %in% c("Garces_Fruit", "Sebastian_Warnier"), "SI", "NO"))
+df_comparacion
+```
+
+```{r}
+comparacion_Garces <- df_comparacion %>%
+  filter(client %in% c("Garces_Fruit","Sebastian_Warnier"))
+```
+
+Resumenes
+
+```{r}
+resumen_diferencias_orchards <- df_comparacion %>%
+  group_by(diferencia_horas,orchard,Garces) %>%
+  summarize(
+    diferencia_promedio= mean(abs(diferencia_tempMean)),
+    desviacion_estandar = sd(abs(diferencia_tempMean)),
+    mediana= median(diferencia_tempMean),
+  )
+
+resumen_diferencias_total <- df_comparacion %>%
+  group_by(diferencia_horas,Garces) %>%
+  summarize(
+    diferencia_promedio = mean(diferencia_tempMean, na.rm = TRUE),
+    desviacion_estandar = sd(abs(diferencia_tempMean),na.rm=TRUE),
+    mediana = median(diferencia_tempMean, na.rm = TRUE)
+  )
+
+resumen_Garces <- comparacion_Garces %>%
+  group_by(diferencia_horas,orchard) %>%
+  summarize(
+    diferencia_promedio = mean(diferencia_tempMean, na.rm = TRUE),
+    desviacion_estandar = sd(abs(diferencia_tempMean),na.rm=TRUE),
+    mediana = median(diferencia_tempMean, na.rm = TRUE)
+  )
+
+```
+```{r}
+resumen_diferencias_orchards<- resumen_diferencias_orchards %>%
+  filter(diferencia_horas>0)
+```
+
+
+```{r}
+ggplot(resumen_diferencias_total, aes(x = diferencia_horas, y = diferencia_promedio, color = Garces)) +
+  geom_point(size = 1.5, alpha = 0.7, position = position_dodge(width = 0.5)) +  
+  geom_line(aes(y = mediana, color = Garces), linetype = "dashed") +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia de temperatura promedio",
+       x = "Diferencia Horaria",
+       y = "Delta de temperatura (grados)") +
+  scale_color_manual(values = c("NO" = "red", "SI" = "blue"))  # Cambiamos el orden de los colores
+
+```
+En promedio, para cualquier diferencia horaria, la predicción en los huertos de Garces tiene un menor error, el promedio de sus husertos no sobrepasa en ningún momento una diferencia de predicción de 1.9 grados celsius. 
+
+
+Puntos por lineas
+
+```{r}
+library(ggplot2)
+
+ggplot(resumen_diferencias_orchards, aes(x = diferencia_horas, y = diferencia_promedio, color = Garces, group = orchard)) +
+  geom_line() +
+  geom_point(size = 0.7, alpha = 0.6, position = position_dodge(width = 0.5)) +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio",
+       x = "Diferencia Horaria de predicción",
+       y = "Delta de temperatura (grados)") +
+  scale_color_manual(values = c("NO" = "red", "SI" = "blue")) 
+
+```
+Para predicciones de precipitaciones mayores a cero :
+
+```{r}
+df_precipitacion<-df_comparacion  %>%
+  filter(Predict_precipitation>0)%>%
+  filter(diferencia_horas>0)
+```
+
+
+
+```{r}
+resumen_precipitacion_orchards <- df_precipitacion %>%
+  group_by(diferencia_horas,orchard,Garces) %>%
+  summarize(
+    diferencia_promedio= mean(abs(diferencia_Precip)),
+    desviacion_estandar = sd(abs(diferencia_Precip)),
+    mediana= median(diferencia_Precip),
+  )
+
+resumen_temperatura_total <- df_comparacion %>%
+  group_by(diferencia_horas) %>%
+  summarize(
+    diferencia_promedio = mean(diferencia_tempMean, na.rm = TRUE),
+    desviacion_estandar = sd(abs(diferencia_tempMean),na.rm=TRUE),
+    mediana = median(diferencia_tempMean, na.rm = TRUE)
+  )
+
+resumen_precip_Garces <- comparacion_Garces %>%
+  group_by(diferencia_horas,orchard) %>%
+  summarize(
+    diferencia_promedio = mean(diferencia_Precip, na.rm = TRUE),
+    desviacion_estandar = sd(abs(diferencia_Precip),na.rm=TRUE),
+    mediana = median(diferencia_precip, na.rm = TRUE)
+  )
+```
+
+```{r}
+ggplot(resumen_temperatura_total, aes(x = diferencia_horas, y = diferencia_promedio)) +
+  geom_point(size = 1.5, alpha = 0.7, position = position_dodge(width = 0.5),color=Garces) +  # Ajustamos la posición de los puntos
+  geom_line(aes(y = desviacion_estandar, color = "Desviación Estándar"), linetype = "dashed") +
+  geom_line(aes(y = mediana, color = "Mediana"), linetype = "dashed") +
+
+  labs(title = "Relación entre Diferencia Horaria y Diferencia de temperatura promedio",
+       x = "Diferencia Horaria",
+       y = "Delta de temperatura (grados)")
+```
+
+
+
+
+
+```{r}
+ggplot(resumen_precipitacion_orchards, aes(x = diferencia_horas, y = diferencia_promedio, color = Garces, group = orchard)) +
+  geom_line() +
+  geom_point(size = 0.7, alpha = 0.6, position = position_dodge(width = 0.5)) +
+  labs(title = "Relación entre Diferencia Horaria y Diferencia Promedio",
+       x = "Diferencia Horaria de predicción",
+       y = "Delta de temperatura (grados)") +
+  scale_color_manual(values = c("NO" = "red", "SI" = "blue")) 
+
+```
+
+Métricas
+
+Calidad de prediccion, métricas generales del modelo. 
+
+```{r Calculo_Metricas, echo=FALSE}
+# Calcular MAE
+mae_temperatura <- mean(abs(comparacion_Garces$diferencia_tempMean), na.rm = TRUE)
+mae_precipitacion <- mean(abs(comparacion_Garces$diferencia_Precip), na.rm = TRUE)
+
+# Calcular MSE
+mse_temperatura <- mean((abs(comparacion_Garces$diferencia_tempMean))^2, na.rm = TRUE)
+mse_precipitacion <- mean((abs(comparacion_Garces$diferencia_Precip))^2)
+
+# Calcular RMSE
+rmse_temperatura <- sqrt(mse_temperatura)
+rmse_precipitacion <- sqrt(mse_precipitacion)
+
+# Calcular correlación
+correlation_temperatura <- with(comparacion_Garces, cor(abs(diferencia_tempMean[complete.cases(diferencia_tempMean, diferencia_horas)]), diferencia_horas[complete.cases(diferencia_tempMean, diferencia_horas)]))
+correlation_precipitacion <- cor(abs(comparacion_Garces$diferencia_Precip), comparacion_Garces$diferencia_horas)
+```
+
+
+```{r}
+# Crear un data frame con las métricas
+metricas <- data.frame(
+  Variable = c("Temperatura", "Precipitación"),
+  MAE = c(mae_temperatura, mae_precipitacion),
+  MSE = c(mse_temperatura, mse_precipitacion),
+  RMSE = c(rmse_temperatura, rmse_precipitacion),
+  Correlacion = c(correlation_temperatura, correlation_precipitacion)
+)
+
+knitr::kable(metricas, caption = "Métricas de calidad de predicción", align = "c")
+
+```
+
